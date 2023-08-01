@@ -34,6 +34,7 @@ const getDailyUsers = async () => {
     const date = new Date(rows[i].c[4].f).toDateString();
     const sessionid = rows[i].c[5].v;
     const totalCorrect = Number(rows[i].c[2].v);
+    const firstname = rows[i].c[0].v;
     const workshopUser = workshopSessionIds.find((id) => +id === +sessionid);
     if (workshopUser && todaysDate === date) {
       existingUser = finalUsers.find((user) => user.email === email);
@@ -47,6 +48,7 @@ const getDailyUsers = async () => {
           date,
           sessionid,
           totalCorrect,
+          name: firstname,
         });
       }
     }
@@ -55,7 +57,7 @@ const getDailyUsers = async () => {
     (a, b) => b.totalCorrect - a.totalCorrect
   );
   const promotedUsers = Math.round((sortedFinalUsers.length * 90) / 100);
-  console.log(promotedUsers);
+  // console.log(promotedUsers);
   for (let i = 0; i < sortedFinalUsers.length; i++) {
     if (i < promotedUsers) {
       sortedFinalUsers[i].status = "promoted";
