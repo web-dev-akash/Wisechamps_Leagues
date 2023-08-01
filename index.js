@@ -5,12 +5,6 @@ require("dotenv").config();
 const app = express();
 app.use(express.json());
 app.use(cors());
-const WATI_TOKEN = process.env.WATI_TOKEN;
-const WSTOKEN = process.env.WSTOKEN;
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
-const AUTH_TOKEN = process.env.AUTH_TOKEN;
 const PORT = process.env.PORT || 8080;
 
 const workshopSessionIds = ["168909784", "190081258", "116627729", "176886614"];
