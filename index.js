@@ -66,7 +66,7 @@ const getDailyUsers = async () => {
   return sortedFinalUsers;
 };
 
-app.get("/getDailyUsers", async (req, res) => {
+app.get("/", async (req, res) => {
   try {
     const data = await getDailyUsers();
     return res.status(200).send({
