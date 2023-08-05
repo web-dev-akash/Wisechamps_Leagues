@@ -82,7 +82,13 @@ const createLeague = async ({ leagueID, leagueCategory }) => {
   return writeData.data;
 };
 
-const addUsersToLeague = async ({ leagueId, email, correct, attempted }) => {
+const addUsersToLeague = async ({
+  leagueId,
+  name,
+  email,
+  correct,
+  attempted,
+}) => {
   const spreadsheetId = process.env.SCHEDULE_SPREADSHEET_ID;
   const auth = new google.auth.GoogleAuth({
     keyFile: "key.json", //the key file
@@ -97,30 +103,30 @@ const addUsersToLeague = async ({ leagueId, email, correct, attempted }) => {
   const readDataColOne = await sheet.spreadsheets.values.get({
     auth, //auth object
     spreadsheetId, //spreadsheet id
-    range: "League Users!A:B", //sheet name and range of cells
+    range: "League Users!A:C", //sheet name and range of cells
   });
 
   colOneData = readDataColOne.data.values;
 
   const userFound = colOneData.find(
-    (user) => +user[0] === +leagueId && user[1] === email
+    (user) => +user[0] === +leagueId && user[2] === email
   );
 
   if (!!userFound === false) {
     const writeData = await sheet.spreadsheets.values.update({
       auth, //auth object
       spreadsheetId, //spreadsheet id
-      range: `League Users!A${colOneData.length + 1}:D${colOneData.length + 1}`, //sheet name and range of cells
+      range: `League Users!A${colOneData.length + 1}:E${colOneData.length + 1}`, //sheet name and range of cells
       valueInputOption: "USER_ENTERED",
       resource: {
-        values: [[leagueId, email, correct, attempted]],
+        values: [[leagueId, name, email, correct, attempted]],
       },
     });
   }
   return "Success";
 };
 
-const checkLeagueofUser = async ({ email, correct, attempted }) => {
+const checkLeagueofUser = async ({ email, correct, attempted, name }) => {
   const date = new Date().setHours(0, 0, 0);
   const todaysDate = Math.floor(date / 1000);
   const spreadsheetId = process.env.SCHEDULE_SPREADSHEET_ID;
@@ -137,24 +143,24 @@ const checkLeagueofUser = async ({ email, correct, attempted }) => {
   const readDataColOne = await sheet.spreadsheets.values.get({
     auth, //auth object
     spreadsheetId, //spreadsheet id
-    range: "League Users!A:B", //sheet name and range of cells
+    range: "League Users!A:C", //sheet name and range of cells
   });
 
   const readMaster = await sheet.spreadsheets.values.get({
     auth, //auth object
     spreadsheetId, //spreadsheet id
-    range: "League Master!A:D", //sheet name and range of cells
+    range: "League Master!A:E", //sheet name and range of cells
   });
 
   const masterData = readMaster.data.values;
   colOneData = readDataColOne.data.values;
-  const userFound = colOneData.find((user) => user[1] === email);
+  const userFound = colOneData.find((user) => user[2] === email);
   if (!!userFound) {
     const leagueId = Number(userFound[0]);
     const league = masterData.filter((val) => +val[0] === leagueId);
     const expiryDate = Math.floor(new Date(league[0][3]).getTime() / 1000);
     if (expiryDate < todaysDate) {
-      await addUsersToLeague({ leagueId, email, correct, attempted });
+      await addUsersToLeague({ leagueId, name, email, correct, attempted });
       return true;
     } else {
       return false;
@@ -261,6 +267,7 @@ const getDailyUsers = async () => {
         const email = finalUsers[j].email;
         const correct = finalUsers[j].totalCorrect;
         const attempted = finalUsers[j].totalAttempted;
+        const name = finalUsers[j].name;
         if (leagueStrength < 50) {
           leagueStrength++;
           await addUsersToLeague({
@@ -268,6 +275,7 @@ const getDailyUsers = async () => {
             email,
             correct,
             attempted,
+            name,
           });
         } else {
           leagueStrength = 0;
@@ -293,12 +301,14 @@ const getDailyUsers = async () => {
       const email = finalUsers[j].email;
       const correct = finalUsers[j].totalCorrect;
       const attempted = finalUsers[j].totalAttempted;
+      const name = finalUsers[j].name;
       if (countOfFinalUsers < 50) {
         await addUsersToLeague({
           leagueId: newLeagueID,
           email,
           correct,
           attempted,
+          name,
         });
       }
     }
@@ -310,6 +320,7 @@ const getDailyUsers = async () => {
         email: finalUsersIron[i].email,
         correct: finalUsersIron[i].totalCorrect,
         attempted: finalUsersIron[i].totalAttempted,
+        name: finalUsersIron[i].name,
       });
       if (!existingUser) {
         finalIronUsers.push(finalUsersIron[i]);
@@ -327,6 +338,7 @@ const getDailyUsers = async () => {
         email: finalIronUsers[i].email,
         correct: finalIronUsers[i].totalCorrect,
         attempted: finalIronUsers[i].totalAttempted,
+        name: finalIronUsers[i].name,
       });
     }
   }
